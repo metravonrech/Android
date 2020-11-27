@@ -1,0 +1,4 @@
+#Fri Nov 27 02:14:05 MSK 2020
+base.0=/home/student/Desktop/labs/Android/quiz1/android/app/build/intermediates/dex/debug/mergeDexDebug/out/classes.dex
+renamed.0=classes.dex
+path.0=classes.dex
