@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Text,
   View,
@@ -7,9 +7,11 @@ import {
   TextInput,
   TouchableOpacity,
   Keyboard,
+  Button,
 } from 'react-native';
-
 import {useFocusEffect} from '@react-navigation/native';
+import * as triviaActions from '../../resourses/trivia/trivia.actions';
+import { useDispatch } from 'react-redux';
 
 const Welcome = ({navigation}) => {
   const [name, setName] = useState({
@@ -18,6 +20,7 @@ const Welcome = ({navigation}) => {
     isSubmitted: false,
   });
 
+  const dispatch = useDispatch();
   const handleInput = (value) => {
     if (value === '') {
       setName({value: '', isSubmitted: false, isValid: false});
@@ -26,9 +29,10 @@ const Welcome = ({navigation}) => {
     }
   };
 
-  const startQuiz = () => {
+  const startQuiz = async () => {
     if (name.value !== '') {
       Keyboard.dismiss();
+      dispatch(triviaActions.AddNewUser(name.value))
       navigation.navigate({
         name: 'Question',
       });
@@ -36,6 +40,10 @@ const Welcome = ({navigation}) => {
       setName({...name, isSubmitted: true});
     }
   };
+
+  useEffect(() => {
+    dispatch(triviaActions.getQuestions())
+  }, [])
 
   useFocusEffect(
     useCallback(() => {

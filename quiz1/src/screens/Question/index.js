@@ -1,62 +1,66 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  ToastAndroid,
 } from 'react-native';
-import questions from '../../services/data/questions.json';
-import {useFocusEffect} from '@react-navigation/native';
-import shuffle from '../../utils/shuffle';
-
+import { useSelector } from 'react-redux';
+import * as triviaSelectors from '../../resourses/trivia/trivia.selectors';
+import { BannerAd, BannerAdSize, TestIds } from '@react-native-firebase/admob';
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }
 
-const Question = ({navigation}) => {
-const colorIndex= getRandomInt(3);
+const adUnitId = __DEV__ ? TestIds.BANNER : 'someId';
 
+const showToast = () => {
+  ToastAndroid.showWithGravity(
+    "Correct!",
+    ToastAndroid.SHORT,
+    ToastAndroid.CENTER
+  );
+};
+
+const Question = ({navigation}) => {
+  const colorIndex = getRandomInt(3);
+  const questions = useSelector(triviaSelectors.getQuestions)
   const [state, setState] = useState({
     currentQn: 0,
     end: false,
-    wrongAns: false,
-    questions: questions,
+    wrongAns: 0,
   });
 
   const handleAnswer = (selectedAns) => {
     const newState = {...state};
-
-    if (selectedAns === questions[state.currentQn].correct) {
+    if (selectedAns === questions[state.currentQn].correct_answer) {
+      showToast()
       if (state.currentQn < questions.length - 1) {
         newState.currentQn = state.currentQn + 1;
       } else {
         newState.end = true;
       }
     } else {
-      newState.wrongAns = true;
+      if (state.currentQn < questions.length - 1) {
+        newState.currentQn = state.currentQn + 1;
+        newState.wrongAns += 1;
+      } else {
+        newState.end = true;
+      }
     }
     setState(newState);
   };
 
   useEffect(() => {
-    if (state.end || state.wrongAns) {
-      navigation.navigate({
-        name: state.end ? 'Result' : 'Gameover',
+    if (state.end) {
+      navigation.navigate('Result', {
+        wrongAns: state.wrongAns,
+        length: questions.length,
       });
     }
   }, [navigation, state]);
-
-  useFocusEffect(
-    useCallback(() => {
-      setState({
-        currentQn: 0,
-        end: false,
-        wrongAns: false,
-        questions: shuffle(questions),
-      });
-    }, []),
-  );
 
   return (
     <>
@@ -78,24 +82,32 @@ const colorIndex= getRandomInt(3);
           ]}>
           <View style={styles.top}>
             <Text style={[styles.text, styles.currentQuestion]}>
-              {state.currentQn + 1}/{state.questions.length}
+              {state.currentQn + 1}/{questions.length}
             </Text>
             <Text style={[styles.text]}>
-              {state.currentQn + 1}. {state.questions[state.currentQn].title}
+              {state.currentQn + 1}. {questions[state.currentQn].question}
             </Text>
           </View>
           <View style={styles.bottom}>
-            {state.questions[state.currentQn].options.map((q, i) => (
+            {[...questions[state.currentQn].incorrect_answers, questions[state.currentQn].correct_answer].map((q, i) => (
               <TouchableOpacity
                 style={[
                   styles.buttonInput,
                   {backgroundColor: colors[colorIndex]},
                 ]}
-                onPress={() => handleAnswer(i)}
+                onPress={() => handleAnswer(q)}
                 key={i}>
                 <Text style={styles.buttonText}>{q}</Text>
               </TouchableOpacity>
             ))}
+
+            <BannerAd
+              unitId={adUnitId}
+              size={BannerAdSize.FULL_BANNER}
+              requestOptions={{
+                requestNonPersonalizedAdsOnly: true,
+              }}
+            />
           </View>
         </View>
       </SafeAreaView>

@@ -1,31 +1,66 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   View,
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  ImageBackground,
+  ImageBackground, Button,
 } from 'react-native';
+import Pie from 'react-native-pie'
+import { useSelector } from 'react-redux';
+import * as triviaSelectors from '../../resourses/trivia/trivia.selectors';
+import * as triviaActions from '../../resourses/trivia/trivia.actions';
+import { useDispatch } from 'react-redux';
 
-const gamewonImage = require('../../assets/images/gamewon.jpg');
+const Result = ({route,navigation}) => {
+  const user = useSelector(triviaSelectors.getCurrentUser)
+  const dispatch = useDispatch();
+  const { wrongAns, length } = route.params;
+  dispatch(triviaActions.AddUserResult(user,length - wrongAns))
+  const percentage = ((length - wrongAns) / length) * 100
 
-const Result = ({navigation}) => {
   return (
     <>
       <SafeAreaView style={{flex: 0, backgroundColor: '#f9dbd2'}} />
       <SafeAreaView style={{flex: 1, backgroundColor: '#1b1f22'}}>
         <View style={styles.container}>
-          <ImageBackground source={gamewonImage} style={styles.bg_image}>
             <View style={styles.top}>
-              <Text style={styles.gameStatus}>You Won</Text>
+              <View style={{ width: 175, alignItems: 'center', marginBottom: 80 }}>
+                <Pie
+                  radius={80}
+                  innerRadius={60}
+                  sections={[
+                    {
+                      percentage: percentage,
+                      color: '#ed8021',
+                    },
+                  ]}
+                  dividerSize={6}
+                  strokeCap={'butt'}
+                />
+                <View
+                  style={styles.gauge}
+                >
+                  <Text
+                    style={styles.gaugeText}
+                  >
+                    {percentage}%
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.gaugeText}>You scored {length - wrongAns}/{length}</Text>
               <TouchableOpacity
                 style={styles.buttonInput}
                 onPress={() => navigation.navigate('Welcome')}>
                 <Text style={styles.buttonText}>{'Start new game'}</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.buttonInput}
+                onPress={() => navigation.navigate('AllResults')}>
+                <Text style={styles.buttonText}>{'See all the results'}</Text>
+              </TouchableOpacity>
             </View>
-          </ImageBackground>
         </View>
       </SafeAreaView>
     </>
@@ -38,15 +73,26 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     color: 'white',
   },
+  gauge: {
+    position: 'absolute',
+    width: 100,
+    height: 160,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gaugeText: {
+    backgroundColor: 'transparent',
+    color: '#FFFFFF',
+    fontSize: 24,
+  },
   top: {
     flex: 1,
-    // backgroundColor: '#f9dbd2',
     justifyContent: 'flex-start',
     alignItems: 'center',
+    marginTop: 100,
   },
   bottom: {
     flex: 1,
-    // backgroundColor: '#1b1f22',
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
@@ -63,7 +109,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     textAlign: 'center',
     padding: 8,
-    margin: 8,
+    marginTop: 80,
   },
   buttonText: {
     fontSize: 30,

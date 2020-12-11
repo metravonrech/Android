@@ -5,7 +5,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import Welcome from '../screens/Welcome';
 import Result from '../screens/Result';
 import Question from '../screens/Question';
-import Gameover from '../screens/Gameover';
+import AllResults from '../screens/AllResults';
 
 const Stack = createStackNavigator();
 
@@ -28,8 +28,8 @@ const AppNavigator = () => (
         options={{headerShown: false}}
       />
       <Stack.Screen
-        name="Gameover"
-        component={Gameover}
+        name="AllResults"
+        component={AllResults}
         options={{headerShown: false}}
       />
     </Stack.Navigator>
